@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build"
+  command = "VITE_MUSIC_API_URL=https://cineweave-production-3dc0.up.railway.app npm run build"
   publish = "dist"
   functions = "netlify/functions"
 
