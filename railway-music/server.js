@@ -50,8 +50,8 @@ const server = createServer(async (req, res) => {
     return
   }
 
-  // Music generate - POST /api/music/generate
-  if (url.pathname === '/api/music/generate' && req.method === 'POST') {
+  // Music generate - POST /api/music/generate or /music/generate
+  if ((url.pathname === '/api/music/generate' || url.pathname === '/music/generate') && req.method === 'POST') {
     if (!process.env.GMI_API_KEY) {
       return json(res, 503, { error: 'GMI_API_KEY not set in environment' })
     }
@@ -127,13 +127,13 @@ const server = createServer(async (req, res) => {
     }
   }
 
-  // GMI status - GET /api/gmi/status/:requestId
-  if (url.pathname.startsWith('/api/gmi/status/') && req.method === 'GET') {
+  // GMI status - GET /api/gmi/status/:requestId or /gmi/status/:requestId
+  if ((url.pathname.startsWith('/api/gmi/status/') || url.pathname.startsWith('/gmi/status/')) && req.method === 'GET') {
     if (!process.env.GMI_API_KEY) {
       return json(res, 503, { error: 'GMI_API_KEY not set' })
     }
 
-    const requestId = url.pathname.split('/api/gmi/status/')[1]
+    const requestId = url.pathname.split('/api/gmi/status/')[1] || url.pathname.split('/gmi/status/')[1]
     if (!requestId) {
       return json(res, 400, { error: 'request_id is required' })
     }
