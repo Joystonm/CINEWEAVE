@@ -3,6 +3,9 @@
   publish = "dist"
   functions = "netlify/functions"
 
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "VITE_MUSIC_API_URL"
+
 [dev]
   command = "vite"
   port = 8888
