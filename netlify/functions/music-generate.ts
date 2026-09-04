@@ -30,6 +30,9 @@ export const handler: Handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: 'lyrics are required' }) }
   }
 
+  // Submit music job to GMI and return immediately with request_id.
+  // GMI Music 3.0 is synchronous (30-60s) so we do NOT wait for the result —
+  // the frontend polls /api/gmi/status/:id using the returned request_id.
   try {
     const response = await fetch(`${GMI_BASE}${GMI_SUBMIT}`, {
       method: 'POST',
@@ -51,24 +54,16 @@ export const handler: Handler = async (event) => {
 
     const data = await response.json()
 
-    // If already success (sync response), return outcome directly
-    if (data.status === 'success' && data.outcome) {
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          success: true,
-          request_id: data.request_id,
-          status: 'success',
-          outcome: data.outcome,
-        }),
-      }
-    }
-
+    // Return the request_id immediately — do NOT wait for synchronous result
+    // Frontend will poll /api/gmi/status/:id until status === 'success'
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ success: true, request_id: data.request_id, status: data.status }),
+      body: JSON.stringify({
+        success: true,
+        request_id: data.request_id,
+        status: 'processing',
+      }),
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'

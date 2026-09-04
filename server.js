@@ -186,15 +186,11 @@ const server = createServer(async (req, res) => {
       // Retry up to 3 times on capacity errors
       let data, lastStatus
       for (let attempt = 1; attempt <= 3; attempt++) {
-        const controller = new AbortController()
-        const timeout = setTimeout(() => controller.abort(), 10_000)
         const r = await fetch(`${GMI_BASE}/api/v1/ie/requestqueue/apikey/requests`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${process.env.GMI_API_KEY}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ model: 'minimax-music-3.0', payload: { lyrics, prompt, sample_rate, bitrate, format } }),
-          signal: controller.signal,
         })
-        clearTimeout(timeout)
 
         // Handle non-JSON responses (HTML error pages)
         const contentType = r.headers.get('content-type') || ''

@@ -427,7 +427,8 @@ async function executeNode(
             updateNodeData(node.id, { processingMessage: `Music ${status}...` })
           },
           4000,
-          60
+          60,
+          import.meta.env.VITE_MUSIC_API_URL || undefined
         )
 
         const audioUrl = final.outcome?.audio_url || final.outcome?.media_urls?.[0]?.url || null

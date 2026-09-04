@@ -1,0 +1,11 @@
+{
+  "name": "cineweave-music-api",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5"
+  }
+}

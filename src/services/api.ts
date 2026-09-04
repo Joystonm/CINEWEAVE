@@ -6,9 +6,30 @@ import type {
 } from '../types'
 
 const BASE = '/api'
+// Railway music API URL - set via VITE_MUSIC_API_URL env var
+// e.g. https://cineweave-music.up.railway.app
+const MUSIC_API = import.meta.env.VITE_MUSIC_API_URL || null
 
 async function apiCall<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  })
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw new Error(data.detail || data.error || `API error ${res.status}`)
+  }
+
+  return data as T
+}
+
+// Music API call - uses Railway URL if configured, otherwise falls back to local /api
+async function musicApiCall<T>(path: string, options?: RequestInit): Promise<T> {
+  const base = MUSIC_API || BASE
+  const url = path.startsWith('http') ? path : `${base}${path}`
+  const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   })
@@ -85,15 +106,23 @@ export async function submitMusic(params: {
   prompt?: string
   format?: string
 }): Promise<GMISubmitResponse & { outcome?: GMIStatusResponse['outcome'] }> {
-  return apiCall('/music/generate', {
+  return musicApiCall('/music/generate', {
     method: 'POST',
     body: JSON.stringify(params),
   })
 }
 
 // ─── Poll GMI Job Status ──────────────────────────────────────────────────────
-export async function pollJobStatus(requestId: string): Promise<GMIStatusResponse> {
-  return apiCall<GMIStatusResponse>(`/gmi/status/${requestId}`)
+export async function pollJobStatus(requestId: string, baseUrl?: string): Promise<GMIStatusResponse> {
+  const base = baseUrl || BASE
+  const url = `/gmi/status/${requestId}`
+  const fullUrl = baseUrl ? `${base}${url}` : `${base}${url}`
+  const res = await fetch(fullUrl, {
+    headers: { 'Content-Type': 'application/json' },
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || data.error || `API error ${res.status}`)
+  return data as GMIStatusResponse
 }
 
 // ─── Polling helper: poll until done ─────────────────────────────────────────
@@ -101,7 +130,8 @@ export async function pollUntilComplete(
   requestId: string,
   onUpdate: (status: string) => void,
   intervalMs = 3000,
-  maxAttempts = 60
+  maxAttempts = 60,
+  baseUrl?: string
 ): Promise<GMIStatusResponse> {
   return new Promise((resolve, reject) => {
     let attempts = 0
@@ -109,7 +139,7 @@ export async function pollUntilComplete(
     const check = async () => {
       attempts++
       try {
-        const result = await pollJobStatus(requestId)
+        const result = await pollJobStatus(requestId, baseUrl)
         onUpdate(result.status)
 
         if (result.status === 'success') {
