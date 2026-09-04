@@ -65,6 +65,8 @@ function CanvasInner() {
       // Also check if any node's data content changed (e.g. status update)
       const dataChanged = state.nodes.some((n) => {
         const prev = prevNodeData.current[n.id]
+        // If previous data is undefined (first run) or content differs, consider it changed
+        if (prev === undefined) return true
         return JSON.stringify(prev) !== JSON.stringify(n.data)
       })
 
@@ -204,7 +206,8 @@ function CanvasInner() {
         minZoom={0.3}
         maxZoom={2}
         deleteKeyCode="Delete"
-        connectionRadius={40}
+        connectionRadius={60}
+        nodeDragThreshold={8}
         style={{ width: '100%', height: '100%' }}
       >
         <Background

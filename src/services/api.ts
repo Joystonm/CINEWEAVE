@@ -118,7 +118,8 @@ export async function pollUntilComplete(
         }
 
         if (result.status === 'failed' || result.status === 'cancelled') {
-          reject(new Error(`Job ${result.status}: ${requestId}`))
+          const errMsg = (result.outcome as Record<string, unknown>)?.error || (result.outcome as Record<string, unknown>)?.message || result.outcome || `Job ${result.status}`
+          reject(new Error(typeof errMsg === 'string' ? errMsg : `Job ${result.status}`))
           return
         }
 

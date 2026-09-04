@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  Sparkles, Zap, Film, Mic2, Music, Lightbulb, Clapperboard,
+  Sparkles, Film, Mic2, Music, Lightbulb, Clapperboard,
   Layout, Plus, ChevronDown, ChevronRight, Wand2
 } from 'lucide-react'
 import { useWorkflowStore } from '../../store/workflowStore'
@@ -18,7 +18,6 @@ interface NodeDef {
 const NODE_DEFS: NodeDef[] = [
   { type: 'idea', label: 'Creative Idea', sub: 'Starting point', icon: <Lightbulb size={13} />, color: '#6366f1' },
   { type: 'm3Director', label: 'M3 Creative Director', sub: 'Cinematic reasoning', icon: <Sparkles size={13} />, color: '#8b5cf6' },
-  { type: 'm27Assistant', label: 'M2.7 Assistant', sub: 'Workflow intelligence', icon: <Zap size={13} />, color: '#6366f1' },
   { type: 'h3Video', label: 'H3 Video', sub: 'Cinematic generation', icon: <Film size={13} />, color: '#db2777' },
   { type: 'speech28', label: 'Speech 2.8', sub: 'Narration & voice', icon: <Mic2 size={13} />, color: '#0891b2' },
   { type: 'music30', label: 'Music 3.0', sub: 'Cinematic score', icon: <Music size={13} />, color: '#d97706' },
@@ -176,7 +175,7 @@ export function Sidebar() {
 
         {/* Intelligence nodes */}
         <Section title="Intelligence">
-          {NODE_DEFS.filter((n) => ['idea', 'm3Director', 'm27Assistant'].includes(n.type)).map((def) => (
+          {NODE_DEFS.filter((n) => ['idea', 'm3Director'].includes(n.type)).map((def) => (
             <NodeItem key={def.type} def={def} />
           ))}
         </Section>

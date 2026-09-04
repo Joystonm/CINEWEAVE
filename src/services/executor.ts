@@ -18,6 +18,7 @@ import type {
   Music30NodeData,
   CinematicBlueprint,
 } from '../types'
+import { EMOTION_OPTIONS } from '../types'
 
 // ─── Topological Sort ─────────────────────────────────────────────────────────
 function topologicalSort(nodes: WorkflowNode[], edges: WorkflowEdge[]): WorkflowNode[] {
@@ -296,6 +297,12 @@ async function executeNode(
               updateNodeData(node.id, { text, emotion })
             }
           }
+        }
+
+        // Validate emotion - only allow known values to prevent API errors
+        if (!EMOTION_OPTIONS.includes(emotion as typeof EMOTION_OPTIONS[number])) {
+          emotion = 'auto'
+          updateNodeData(node.id, { emotion })
         }
 
         if (!text?.trim()) {

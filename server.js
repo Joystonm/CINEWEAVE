@@ -140,6 +140,8 @@ const server = createServer(async (req, res) => {
         headers: { 'Authorization': `Bearer ${process.env.GMI_API_KEY}` }
       })
       const data = await r.json()
+      // Log full response for debugging
+      console.log(`GMI status for ${requestId}:`, JSON.stringify(data))
       return json(res, 200, { success: true, request_id: data.request_id, model: data.model, status: data.status, outcome: data.outcome || null })
     } catch (e) { return json(res, 500, { error: e.message }) }
   }
@@ -181,12 +183,27 @@ const server = createServer(async (req, res) => {
     const { lyrics, prompt, sample_rate = 44100, bitrate = 256000, format = 'mp3' } = await readBody(req)
     if (!lyrics) return json(res, 400, { error: 'lyrics required' })
     try {
-      const r = await fetch(`${GMI_BASE}/api/v1/ie/requestqueue/apikey/requests`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${process.env.GMI_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'minimax-music-3.0', payload: { lyrics, prompt, sample_rate, bitrate, format } })
-      })
-      const data = await r.json()
+      // Retry up to 3 times on capacity errors
+      let data, lastStatus
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        const r = await fetch(`${GMI_BASE}/api/v1/ie/requestqueue/apikey/requests`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${process.env.GMI_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'minimax-music-3.0', payload: { lyrics, prompt, sample_rate, bitrate, format } })
+        })
+        data = await r.json()
+        lastStatus = r.status
+        if (r.ok) break
+        if ((r.status === 503 || r.status === 429) && attempt < 3) {
+          console.log(`Music ${r.status}, retrying (${attempt}/3) in ${attempt * 3}s...`)
+          await new Promise(resolve => setTimeout(resolve, attempt * 3000))
+        } else {
+          const msg = (r.status === 503 || r.status === 429)
+            ? 'Music 3.0 is at capacity. Please try again in a few seconds.'
+            : (data.error || data.message || 'Music generation failed')
+          return json(res, r.status, { error: msg })
+        }
+      }
       if (data.status === 'success' && data.outcome) return json(res, 200, { success: true, request_id: data.request_id, status: 'success', outcome: data.outcome })
       return json(res, 200, { success: true, request_id: data.request_id, status: data.status })
     } catch (e) { return json(res, 500, { error: e.message }) }

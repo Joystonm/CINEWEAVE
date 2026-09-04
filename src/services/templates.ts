@@ -5,7 +5,7 @@ export const TEMPLATES: WorkflowTemplate[] = [
   {
     id: 'cinematic-trailer',
     name: 'Cinematic Trailer',
-    description: 'Full production pipeline: Idea → M3 Creative Director → H3 Video + Speech + Music → Cinematic Output',
+    description: 'Full production pipeline: Idea → M3 Creative Director → H3 Video + Music → Cinematic Output',
     icon: '🎬',
     nodes: [
       {
@@ -51,23 +51,6 @@ export const TEMPLATES: WorkflowTemplate[] = [
         },
       },
       {
-        id: 'speech-1',
-        type: 'speech28',
-        position: { x: 620, y: 300 },
-        data: {
-          label: 'Speech 2.8',
-          status: 'idle',
-          text: '',
-          voiceId: 'English_expressive_narrator',
-          emotion: 'auto',
-          speed: 1,
-          requestId: null,
-          audioUrl: null,
-          error: null,
-          processingMessage: '',
-        },
-      },
-      {
         id: 'music-1',
         type: 'music30',
         position: { x: 620, y: 480 },
@@ -100,10 +83,8 @@ export const TEMPLATES: WorkflowTemplate[] = [
     edges: [
       { id: 'e1-2', source: 'idea-1', target: 'm3-1' },
       { id: 'e2-3', source: 'm3-1', target: 'h3-1' },
-      { id: 'e2-4', source: 'm3-1', target: 'speech-1' },
-      { id: 'e2-5', source: 'm3-1', target: 'music-1' },
-      { id: 'e3-6', source: 'h3-1', target: 'output-1' },
-      { id: 'e4-6', source: 'speech-1', target: 'output-1' },
+      { id: 'e2-4', source: 'm3-1', target: 'music-1' },
+      { id: 'e3-5', source: 'h3-1', target: 'output-1' },
       { id: 'e5-6', source: 'music-1', target: 'output-1' },
     ],
   },
@@ -137,18 +118,6 @@ export const TEMPLATES: WorkflowTemplate[] = [
           blueprint: null,
           error: null,
           processingMessage: '',
-        },
-      },
-      {
-        id: 'm27-1',
-        type: 'm27Assistant',
-        position: { x: 360, y: 350 },
-        data: {
-          label: 'M2.7 Optimizer',
-          status: 'idle',
-          task: 'Optimize prompts for Music Video production',
-          result: null,
-          error: null,
         },
       },
       {
@@ -201,11 +170,10 @@ export const TEMPLATES: WorkflowTemplate[] = [
     ],
     edges: [
       { id: 'e1-2', source: 'idea-1', target: 'm3-1' },
-      { id: 'e1-3', source: 'idea-1', target: 'm27-1' },
-      { id: 'e2-4', source: 'm3-1', target: 'music-1' },
-      { id: 'e3-5', source: 'm27-1', target: 'h3-1' },
-      { id: 'e4-6', source: 'music-1', target: 'output-1' },
-      { id: 'e5-6', source: 'h3-1', target: 'output-1' },
+      { id: 'e2-3', source: 'm3-1', target: 'music-1' },
+      { id: 'e2-4', source: 'm3-1', target: 'h3-1' },
+      { id: 'e3-5', source: 'music-1', target: 'output-1' },
+      { id: 'e4-5', source: 'h3-1', target: 'output-1' },
     ],
   },
 
@@ -238,18 +206,6 @@ export const TEMPLATES: WorkflowTemplate[] = [
           blueprint: null,
           error: null,
           processingMessage: '',
-        },
-      },
-      {
-        id: 'm27-1',
-        type: 'm27Assistant',
-        position: { x: 300, y: 400 },
-        data: {
-          label: 'M2.7 Script Refiner',
-          status: 'idle',
-          task: 'Validate and optimize the short film production pipeline',
-          result: null,
-          error: null,
         },
       },
       {
@@ -319,20 +275,19 @@ export const TEMPLATES: WorkflowTemplate[] = [
     ],
     edges: [
       { id: 'e1-2', source: 'idea-1', target: 'm3-1' },
-      { id: 'e1-3', source: 'idea-1', target: 'm27-1' },
-      { id: 'e2-4', source: 'm3-1', target: 'h3-1' },
-      { id: 'e2-5', source: 'm3-1', target: 'speech-1' },
-      { id: 'e2-6', source: 'm3-1', target: 'music-1' },
-      { id: 'e4-7', source: 'h3-1', target: 'output-1' },
-      { id: 'e5-7', source: 'speech-1', target: 'output-1' },
-      { id: 'e6-7', source: 'music-1', target: 'output-1' },
+      { id: 'e2-3', source: 'm3-1', target: 'h3-1' },
+      { id: 'e2-4', source: 'm3-1', target: 'speech-1' },
+      { id: 'e2-5', source: 'm3-1', target: 'music-1' },
+      { id: 'e3-6', source: 'h3-1', target: 'output-1' },
+      { id: 'e4-6', source: 'speech-1', target: 'output-1' },
+      { id: 'e5-6', source: 'music-1', target: 'output-1' },
     ],
   },
 ]
 
 // ─── Demo Workflow ────────────────────────────────────────────────────────────
 export const DEMO_WORKFLOW = {
-  nodes: TEMPLATES[0].nodes.map((n) => {
+  nodes: TEMPLATES[0].nodes.filter((n) => n.type !== 'speech28').map((n) => {
     if (n.type === 'idea') {
       return {
         ...n,
@@ -347,5 +302,12 @@ export const DEMO_WORKFLOW = {
     }
     return n
   }),
-  edges: TEMPLATES[0].edges,
+  edges: TEMPLATES[0].edges.filter((e) => {
+    // Remove edges connected to speech28 node
+    const speechNode = TEMPLATES[0].nodes.find((n) => n.type === 'speech28')
+    if (speechNode && (e.source === speechNode.id || e.target === speechNode.id)) {
+      return false
+    }
+    return true
+  }),
 }
