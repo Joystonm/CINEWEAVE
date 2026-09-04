@@ -114,8 +114,17 @@ const server = createServer(async (req, res) => {
         })
       }
 
-      // Music 3.0 is synchronous - return immediately with request_id
-      // Frontend polls /api/gmi/status/:id for result
+      // Music 3.0 is synchronous - if outcome is already available, return it directly
+      // Otherwise return request_id and let frontend poll for result
+      if (data.status === 'success' && data.outcome) {
+        return json(res, 200, {
+          success: true,
+          request_id: data.request_id,
+          status: 'success',
+          outcome: data.outcome,
+        })
+      }
+
       return json(res, 200, {
         success: true,
         request_id: data.request_id,

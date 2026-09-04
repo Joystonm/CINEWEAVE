@@ -428,7 +428,7 @@ async function executeNode(
           },
           4000,
           60,
-          import.meta.env.VITE_MUSIC_API_URL || undefined
+          'https://cineweave-production-3dc0.up.railway.app'
         )
 
         const audioUrl = final.outcome?.audio_url || final.outcome?.media_urls?.[0]?.url || null
