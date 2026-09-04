@@ -11,8 +11,6 @@
 
 [functions]
   node_bundler = "esbuild"
-  # Music 3.0 synchronous generation can take 30-60s — increase timeout to 60s
-  timeout = 60
 
 # Redirect all /api/* calls to Netlify Functions
 [[redirects]]

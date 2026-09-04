@@ -187,7 +187,7 @@ const server = createServer(async (req, res) => {
       let data, lastStatus
       for (let attempt = 1; attempt <= 3; attempt++) {
         const controller = new AbortController()
-        const timeout = setTimeout(() => controller.abort(), 90_000)
+        const timeout = setTimeout(() => controller.abort(), 10_000)
         const r = await fetch(`${GMI_BASE}/api/v1/ie/requestqueue/apikey/requests`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${process.env.GMI_API_KEY}`, 'Content-Type': 'application/json' },
