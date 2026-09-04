@@ -31,6 +31,11 @@ export const handler: Handler = async (event) => {
   }
 
   try {
+    // Music 3.0 can take 30-60s to respond (synchronous operation)
+    // Increase timeout to 90s to accommodate long generation time
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 90_000)
+
     const response = await fetch(`${GMI_BASE}${GMI_SUBMIT}`, {
       method: 'POST',
       headers: {
@@ -41,10 +46,13 @@ export const handler: Handler = async (event) => {
         model: 'minimax-music-3.0',
         payload: { lyrics, prompt, sample_rate, bitrate, format },
       }),
+      signal: controller.signal,
     })
+    clearTimeout(timeout)
 
     if (!response.ok) {
       const err = await response.text()
+      console.log('Music API error response:', err)
       return { statusCode: response.status, body: JSON.stringify({ error: 'Music submission failed', detail: err }) }
     }
 

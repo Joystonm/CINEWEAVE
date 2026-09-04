@@ -186,11 +186,26 @@ const server = createServer(async (req, res) => {
       // Retry up to 3 times on capacity errors
       let data, lastStatus
       for (let attempt = 1; attempt <= 3; attempt++) {
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 90_000)
         const r = await fetch(`${GMI_BASE}/api/v1/ie/requestqueue/apikey/requests`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${process.env.GMI_API_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: 'minimax-music-3.0', payload: { lyrics, prompt, sample_rate, bitrate, format } })
+          body: JSON.stringify({ model: 'minimax-music-3.0', payload: { lyrics, prompt, sample_rate, bitrate, format } }),
+          signal: controller.signal,
         })
+        clearTimeout(timeout)
+
+        // Handle non-JSON responses (HTML error pages)
+        const contentType = r.headers.get('content-type') || ''
+        if (!contentType.includes('application/json')) {
+          const errText = await r.text()
+          console.log(`Music API non-JSON response (attempt ${attempt}):`, errText.slice(0, 200))
+          if (attempt === 3) return json(res, 502, { error: 'Music API returned invalid response', detail: errText.slice(0, 200) })
+          await new Promise(resolve => setTimeout(resolve, attempt * 2000))
+          continue
+        }
+
         data = await r.json()
         lastStatus = r.status
         if (r.ok) break
