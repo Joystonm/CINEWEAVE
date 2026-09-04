@@ -1,0 +1,55 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[dev]
+  command = "vite"
+  port = 8888
+  targetPort = 5173
+  framework = "#custom"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Redirect all /api/* calls to Netlify Functions
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/health"
+  status = 200
+
+[[redirects]]
+  from = "/api/m3/direct"
+  to = "/.netlify/functions/m3-direct"
+  status = 200
+
+[[redirects]]
+  from = "/api/m27/assist"
+  to = "/.netlify/functions/m27-assist"
+  status = 200
+
+[[redirects]]
+  from = "/api/h3/generate"
+  to = "/.netlify/functions/h3-generate"
+  status = 200
+
+[[redirects]]
+  from = "/api/gmi/status/*"
+  to = "/.netlify/functions/gmi-status/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/speech/generate"
+  to = "/.netlify/functions/speech-generate"
+  status = 200
+
+[[redirects]]
+  from = "/api/music/generate"
+  to = "/.netlify/functions/music-generate"
+  status = 200
+
+# SPA fallback
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

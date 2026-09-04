@@ -1,0 +1,275 @@
+@import 'tailwindcss';
+
+/* ─── CineWeave Design System ─────────────────────────────────────────────── */
+:root {
+  /* Core palette — dark theme (canvas/workspace) */
+  --cw-bg-base: #1a1a2e;
+  --cw-bg-surface: #16162a;
+  --cw-bg-elevated: #1e1e36;
+  --cw-bg-panel: #1e1e36;
+  --cw-bg-card: #1e1e36;
+
+  /* Borders */
+  --cw-border: rgba(255, 255, 255, 0.07);
+  --cw-border-subtle: rgba(255, 255, 255, 0.04);
+  --cw-border-accent: rgba(139, 92, 246, 0.25);
+
+  /* Text */
+  --cw-text-primary: #ededf5;
+  --cw-text-secondary: #9090b0;
+  --cw-text-muted: #555570;
+
+  /* Accent — cinematic violet */
+  --cw-accent: #7c3aed;
+  --cw-accent-light: #a78bfa;
+  --cw-accent-dim: rgba(139, 92, 246, 0.1);
+  --cw-accent-glow: rgba(139, 92, 246, 0.3);
+
+  /* Secondary accent — warm amber */
+  --cw-amber: #d97706;
+  --cw-amber-dim: rgba(217, 119, 6, 0.1);
+
+  /* Status colors */
+  --cw-success: #059669;
+  --cw-success-dim: rgba(5, 150, 105, 0.1);
+  --cw-error: #dc2626;
+  --cw-error-dim: rgba(220, 38, 38, 0.1);
+  --cw-warning: #d97706;
+
+  /* Node colors */
+  --cw-node-idea: #7c3aed;
+  --cw-node-m3: #8b5cf6;
+  --cw-node-m27: #6d28d9;
+  --cw-node-h3: #db2777;
+  --cw-node-speech: #0891b2;
+  --cw-node-music: #d97706;
+  --cw-node-output: #059669;
+}
+
+/* ─── Light theme (landing page) ─────────────────────────────────────────── */
+.landing-page {
+  --lp-bg: #ffffff;
+  --lp-bg-subtle: #f7f7fc;
+  --lp-bg-card: #ffffff;
+  --lp-border: rgba(0, 0, 0, 0.07);
+  --lp-border-accent: rgba(139, 92, 246, 0.2);
+  --lp-text-primary: #111118;
+  --lp-text-secondary: #55556a;
+  --lp-text-muted: #9999b0;
+  --lp-accent: #7c3aed;
+  --lp-accent-hover: #6d28d9;
+  --lp-accent-light: #a78bfa;
+  --lp-accent-dim: rgba(139, 92, 246, 0.08);
+  --lp-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --lp-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --lp-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* ─── Base styles ─────────────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--cw-bg-base);
+  color: var(--cw-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.5);
+}
+
+/* ─── React Flow overrides ────────────────────────────────────────────────── */
+.react-flow__background {
+  background-color: var(--cw-bg-base) !important;
+}
+
+.react-flow__minimap {
+  background: #1a1a2e !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.react-flow__controls {
+  background: #1e1e36 !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+}
+
+.react-flow__controls-button {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+  color: #555570 !important;
+  fill: #555570 !important;
+}
+
+.react-flow__controls-button:hover {
+  background: rgba(139, 92, 246, 0.15) !important;
+  color: #a78bfa !important;
+  fill: #a78bfa !important;
+}
+
+.react-flow__edge-path {
+  stroke-width: 1.5;
+}
+
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke-width: 2;
+}
+
+.react-flow__handle {
+  width: 10px !important;
+  height: 10px !important;
+  border: 2px solid var(--cw-accent) !important;
+  background: #1e1e36 !important;
+  transition: all 0.2s ease !important;
+}
+
+.react-flow__handle:hover,
+.react-flow__handle.connectingfrom,
+.react-flow__handle.connectingto {
+  border-color: var(--cw-accent) !important;
+  background: var(--cw-accent) !important;
+  transform: scale(1.3) !important;
+  box-shadow: 0 0 8px var(--cw-accent-glow) !important;
+}
+
+.react-flow__handle-left { left: -5px !important; }
+.react-flow__handle-right { right: -5px !important; }
+
+.react-flow__selection {
+  background: rgba(139, 92, 246, 0.15) !important;
+  border: 1px solid var(--cw-accent) !important;
+}
+
+.react-flow__pane {
+  background: var(--cw-bg-base) !important;
+}
+
+/* ─── Custom node animations ──────────────────────────────────────────────── */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+  50% { box-shadow: 0 0 16px 2px rgba(139, 92, 246, 0.25); }
+}
+
+@keyframes edge-flow {
+  from { stroke-dashoffset: 40; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes node-enter {
+  from { opacity: 0; transform: scale(0.95) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.node-entering {
+  animation: node-enter 0.3s ease-out forwards;
+}
+
+.executing-edge .react-flow__edge-path {
+  stroke-dasharray: 8, 4;
+  animation: edge-flow 0.8s linear infinite;
+}
+
+.loading-shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(139, 92, 246, 0.1) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* ─── Landing page ────────────────────────────────────────────────────────── */
+.landing-page {
+  overflow-y: auto !important;
+  height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Hide scrollbar for horizontal model scroll but keep functionality */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.04);
+  border-radius: 2px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.12);
+  border-radius: 2px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.2);
+}
+
+/* ─── Glass panel effect ──────────────────────────────────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--cw-border);
+}
+
+/* ─── Selection ───────────────────────────────────────────────────────────── */
+::selection {
+  background: var(--cw-accent-dim);
+  color: var(--cw-accent-light);
+}
+
+/* ─── Focus styles ────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--cw-accent);
+  outline-offset: 2px;
+}
+
+/* ─── Typography ──────────────────────────────────────────────────────────── */
+.text-gradient {
+  background: linear-gradient(135deg, var(--cw-accent-light) 0%, #c084fc 50%, var(--cw-amber) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-subtle {
+  background: linear-gradient(135deg, var(--cw-text-primary) 0%, var(--cw-accent-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

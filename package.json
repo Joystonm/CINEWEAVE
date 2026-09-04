@@ -1,0 +1,31 @@
+{
+  "name": "cineweave",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node node_modules/vite/bin/vite.js",
+    "server": "node server.js",
+    "build": "node node_modules/vite/bin/vite.js build",
+    "preview": "node node_modules/vite/bin/vite.js preview"
+  },
+  "dependencies": {
+    "@netlify/functions": "^6.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@xyflow/react": "^12.11.6",
+    "framer-motion": "^13.2.0",
+    "lucide-react": "^1.40.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwindcss": "^4.3.3",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react-swc": "^3.7.2",
+    "typescript": "^5.4.0",
+    "vite": "^5.4.19"
+  }
+}
