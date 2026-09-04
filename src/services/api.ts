@@ -6,9 +6,8 @@ import type {
 } from '../types'
 
 const BASE = '/api'
-// Railway music API URL - set via VITE_MUSIC_API_URL env var
-// e.g. https://cineweave-music.up.railway.app
-const MUSIC_API = import.meta.env.VITE_MUSIC_API_URL || null
+// Railway music API - no timeout issues unlike Netlify Functions
+const MUSIC_API = 'https://cineweave-production-3dc0.up.railway.app'
 
 async function apiCall<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
