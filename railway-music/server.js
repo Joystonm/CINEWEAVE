@@ -9,8 +9,14 @@ const GMI_SUBMIT = '/api/v1/ie/requestqueue/apikey/requests'
 
 const PORT = process.env.PORT || 3000
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
 function json(res, status, data) {
-  res.writeHead(status, { 'Content-Type': 'application/json' })
+  res.writeHead(status, { ...CORS_HEADERS, 'Content-Type': 'application/json' })
   res.end(JSON.stringify(data))
 }
 
