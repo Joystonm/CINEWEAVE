@@ -1,2 +1,2 @@
 [railway]
-  entrypoint = "./start.sh"
+  entrypoint = "node server.js"

@@ -1,69 +1,18 @@
-// Local dev server + Railway production server
-// Single deployment: serves API routes AND React static frontend
+// Railway API server for CineWeave
+// All AI model routes — no static files (Netlify serves frontend)
 // Run with: node server.js
-// Requires: .env file with OPENROUTER_API_KEY and GMI_API_KEY
 
 import { createServer } from 'http'
-import { readFileSync, existsSync } from 'fs'
-import { resolve, dirname, extname, join } from 'path'
-import { fileURLToPath } from 'url'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-
-// Load .env manually (local dev)
-try {
-  const env = readFileSync(resolve(__dirname, '.env'), 'utf8')
-  for (const line of env.split('\n')) {
-    const [key, ...val] = line.split('=')
-    if (key && !key.startsWith('#') && key.trim()) {
-      process.env[key.trim()] = val.join('=').trim()
-    }
-  }
-} catch {
-  console.log('No .env file found — API keys not loaded')
-}
-
-// Railway provides PORT env var
 const PORT = process.env.PORT || 3001
-
-// ─── Static file serving ──────────────────────────────────────────────────────
-const DIST_DIR = resolve(__dirname, 'dist')
-
-function serveStatic(req, res, statusCode = 200) {
-  let url = req.url.split('?')[0]
-  if (url === '/') url = '/index.html'
-
-  const filePath = join(DIST_DIR, url)
-
-  // Security: stay within dist directory
-  if (!filePath.startsWith(DIST_DIR)) {
-    res.writeHead(403)
-    res.end('Forbidden')
-    return
-  }
-
-  if (existsSync(filePath)) {
-    const ext = extname(filePath)
-    const mimeTypes = {
-      '.html': 'text/html',
-      '.js': 'application/javascript',
-      '.css': 'text/css',
-      '.json': 'application/json',
-      '.png': 'image/png',
-      '.svg': 'image/svg+xml',
-      '.ico': 'image/x-icon',
-      '.woff': 'font/woff',
-      '.woff2': 'font/woff2',
-    }
-    res.writeHead(statusCode, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream', 'Cache-Control': 'public, max-age=3600' })
-    res.end(readFileSync(filePath))
-    return true
-  }
-  return false
-}
 
 const GMI_BASE = 'https://console.gmicloud.ai'
 const OR_BASE = 'https://openrouter.ai/api/v1'
+
+function json(res, status, data) {
+  res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+  res.end(JSON.stringify(data))
+}
 
 async function readBody(req) {
   return new Promise((resolve) => {
@@ -75,11 +24,6 @@ async function readBody(req) {
   })
 }
 
-function json(res, status, data) {
-  res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
-  res.end(JSON.stringify(data))
-}
-
 const server = createServer(async (req, res) => {
   // CORS preflight
   if (req.method === 'OPTIONS') {
@@ -89,17 +33,9 @@ const server = createServer(async (req, res) => {
 
   const url = req.url || ''
 
-  // ─── Serve static files (React SPA) ─────────────────────────────────────────
-  if (req.method === 'GET' && !url.startsWith('/api/')) {
-    if (serveStatic(req, res)) return
-    // SPA fallback — serve index.html for client-side routing
-    serveStatic({ ...req, url: '/index.html' }, res, 200)
-    return
-  }
-
   // Health
-  if (url === '/api/health' || url === '/health') {
-    return json(res, 200, { status: 'ok', openrouter: !!process.env.OPENROUTER_API_KEY, gmi: !!process.env.GMI_API_KEY })
+  if (url === '/health') {
+    return json(res, 200, { status: 'ok' })
   }
 
   // ─── M3 Creative Director ────────────────────────────────────────────────────
@@ -208,9 +144,9 @@ const server = createServer(async (req, res) => {
   }
 
   // ─── GMI Status Polling ─────────────────────────────────────────────────────
-  if ((url.startsWith('/api/gmi/status/') || url.startsWith('/gmi/status/')) && req.method === 'GET') {
+  if (url.startsWith('/api/gmi/status/') && req.method === 'GET') {
     if (!process.env.GMI_API_KEY) return json(res, 503, { error: 'GMI_API_KEY not set' })
-    const requestId = url.split('/api/gmi/status/')[1] || url.split('/gmi/status/')[1]
+    const requestId = url.split('/api/gmi/status/')[1]
     if (!requestId) return json(res, 400, { error: 'request_id required' })
     try {
       const r = await fetch(`${GMI_BASE}/api/v1/ie/requestqueue/apikey/requests/${requestId}`, {
@@ -227,7 +163,7 @@ const server = createServer(async (req, res) => {
     const { text, voice_id = 'English_expressive_narrator', emotion = 'auto', speed = 1 } = await readBody(req)
     if (!text) return json(res, 400, { error: 'text required' })
     try {
-      let data, lastStatus
+      let data
       for (let attempt = 1; attempt <= 3; attempt++) {
         const r = await fetch(`${GMI_BASE}/api/v1/ie/requestqueue/apikey/requests`, {
           method: 'POST',
@@ -235,13 +171,11 @@ const server = createServer(async (req, res) => {
           body: JSON.stringify({ model: 'minimax-tts-speech-2.8-hd', payload: { text, voice_id, speed: String(speed), vol: '1', pitch: '0', emotion, language_boost: 'auto', format: 'mp3', audio_sample_rate: '44100', bitrate: '256000', channel: '2', vm_pitch: 0, intensity: 0, timbre: 0, sound_effects: '' } })
         })
         data = await r.json()
-        lastStatus = r.status
         if (r.ok) break
         if (r.status === 503 && attempt < 3) {
-          console.log(`Speech 503 capacity, retrying (${attempt}/3) in ${attempt * 3}s...`)
           await new Promise(resolve => setTimeout(resolve, attempt * 3000))
         } else {
-          const msg = r.status === 503 ? 'Speech 2.8 is at capacity. Please try again in a few seconds.' : (data.error || 'Speech generation failed')
+          const msg = r.status === 503 ? 'Speech 2.8 is at capacity. Please try again.' : (data.error || 'Speech generation failed')
           return json(res, r.status, { error: msg })
         }
       }
@@ -250,7 +184,7 @@ const server = createServer(async (req, res) => {
   }
 
   // ─── Music 3.0 Generation ────────────────────────────────────────────────────
-  if ((url === '/api/music/generate' || url === '/music/generate') && req.method === 'POST') {
+  if (url === '/api/music/generate' && req.method === 'POST') {
     if (!process.env.GMI_API_KEY) return json(res, 503, { error: 'GMI_API_KEY not set' })
     const { lyrics, prompt, sample_rate = 44100, bitrate = 256000, format = 'mp3' } = await readBody(req)
     if (!lyrics) return json(res, 400, { error: 'lyrics required' })
@@ -266,7 +200,6 @@ const server = createServer(async (req, res) => {
         const contentType = r.headers.get('content-type') || ''
         if (!contentType.includes('application/json')) {
           const errText = await r.text()
-          console.log(`Music non-JSON response (attempt ${attempt}):`, errText.slice(0, 200))
           if (attempt === 3) return json(res, 502, { error: 'GMI returned invalid response', detail: errText.slice(0, 200) })
           await new Promise(resolve => setTimeout(resolve, attempt * 2000))
           continue
@@ -275,7 +208,6 @@ const server = createServer(async (req, res) => {
         data = await r.json()
         if (r.ok) break
         if ((r.status === 503 || r.status === 429) && attempt < 3) {
-          console.log(`Music ${r.status}, retrying (${attempt}/3) in ${attempt * 3}s...`)
           await new Promise(resolve => setTimeout(resolve, attempt * 3000))
         } else {
           const msg = (r.status === 503 || r.status === 429) ? 'Music 3.0 is at capacity. Please try again.' : (data.error || data.message || 'Music generation failed')
@@ -283,7 +215,6 @@ const server = createServer(async (req, res) => {
         }
       }
 
-      // Music 3.0 can return outcome directly if fast (sync)
       if (data.status === 'success' && data.outcome) {
         return json(res, 200, { success: true, request_id: data.request_id, status: 'success', outcome: data.outcome })
       }
@@ -295,7 +226,7 @@ const server = createServer(async (req, res) => {
 })
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n🎬 CineWeave running on http://localhost:${PORT}`)
-  console.log(`   OpenRouter: ${process.env.OPENROUTER_API_KEY ? '✓' : '✗ missing OPENROUTER_API_KEY'}`)
-  console.log(`   GMI Cloud:  ${process.env.GMI_API_KEY ? '✓' : '✗ missing GMI_API_KEY'}\n`)
+  console.log(`\n🎬 CineWeave API running on port ${PORT}`)
+  console.log(`   OPENROUTER_API_KEY: ${process.env.OPENROUTER_API_KEY ? '✓' : '✗'}`)
+  console.log(`   GMI_API_KEY:       ${process.env.GMI_API_KEY ? '✓' : '✗'}\n`)
 })

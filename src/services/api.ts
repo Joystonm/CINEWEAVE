@@ -6,9 +6,9 @@ import type {
 } from '../types'
 
 const BASE = '/api'
-// Railway server handles all API routes + serves frontend
-const RAILWAY_URL = 'https://cineweave-production-3dc0.up.railway.app'
-const API_BASE = RAILWAY_URL + '/api'
+// Railway API URL — set via VITE_RAILWAY_URL env var at build time
+const RAILWAY_URL = import.meta.env.VITE_RAILWAY_URL || ''
+const API_BASE = RAILWAY_URL ? `${RAILWAY_URL}/api` : BASE
 
 async function apiCall<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -27,7 +27,7 @@ async function apiCall<T>(path: string, options?: RequestInit): Promise<T> {
 
 // Music API call - uses Railway URL
 async function musicApiCall<T>(path: string, options?: RequestInit): Promise<T> {
-  const base = RAILWAY_URL
+  const base = RAILWAY_URL || 'http://localhost:3001'
   const url = path.startsWith('http') ? path : `${base}${path}`
   const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
