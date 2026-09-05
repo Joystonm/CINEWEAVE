@@ -7,7 +7,7 @@ import type {
 
 const BASE = '/api'
 // Railway API URL — set via VITE_RAILWAY_URL env var at build time
-const RAILWAY_URL = import.meta.env.VITE_RAILWAY_URL || ''
+const RAILWAY_URL = (import.meta.env.VITE_RAILWAY_URL || '').replace(/\/$/, '')
 const API_BASE = RAILWAY_URL ? `${RAILWAY_URL}/api` : BASE
 
 async function apiCall<T>(path: string, options?: RequestInit): Promise<T> {
@@ -28,7 +28,7 @@ async function apiCall<T>(path: string, options?: RequestInit): Promise<T> {
 // Music API call - uses Railway URL
 async function musicApiCall<T>(path: string, options?: RequestInit): Promise<T> {
   const base = RAILWAY_URL || 'http://localhost:3001'
-  const url = path.startsWith('http') ? path : `${base}${path}`
+  const url = path.startsWith('http') ? path : `${base}/api${path}`
   const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
     ...options,
