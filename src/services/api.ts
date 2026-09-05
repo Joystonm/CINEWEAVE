@@ -6,11 +6,12 @@ import type {
 } from '../types'
 
 const BASE = '/api'
-// Railway music API - no timeout issues unlike Netlify Functions
-const MUSIC_API = 'https://cineweave-production-3dc0.up.railway.app'
+// Railway server handles all API routes + serves frontend
+const RAILWAY_URL = 'https://cineweave-production-3dc0.up.railway.app'
+const API_BASE = RAILWAY_URL + '/api'
 
 async function apiCall<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${API_BASE}${path}`, {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   })
@@ -24,9 +25,9 @@ async function apiCall<T>(path: string, options?: RequestInit): Promise<T> {
   return data as T
 }
 
-// Music API call - uses Railway URL if configured, otherwise falls back to local /api
+// Music API call - uses Railway URL
 async function musicApiCall<T>(path: string, options?: RequestInit): Promise<T> {
-  const base = MUSIC_API || BASE
+  const base = RAILWAY_URL
   const url = path.startsWith('http') ? path : `${base}${path}`
   const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
@@ -113,8 +114,8 @@ export async function submitMusic(params: {
 
 // ─── Poll GMI Job Status ──────────────────────────────────────────────────────
 export async function pollJobStatus(requestId: string, baseUrl?: string): Promise<GMIStatusResponse> {
-  const base = baseUrl || BASE
-  const url = `/gmi/status/${requestId}`
+  const base = baseUrl || RAILWAY_URL
+  const url = `/api/gmi/status/${requestId}`
   const fullUrl = baseUrl ? `${base}${url}` : `${base}${url}`
   const res = await fetch(fullUrl, {
     headers: { 'Content-Type': 'application/json' },
