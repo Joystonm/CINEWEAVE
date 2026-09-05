@@ -70,6 +70,9 @@ Always respond with a JSON object matching this exact structure:
 }`
 
   try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 25000) // 25s timeout — Netlify max is 26s
+
     const response = await fetch(`${OR_BASE}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -91,7 +94,10 @@ Always respond with a JSON object matching this exact structure:
         temperature: 0.8,
         max_tokens: 4000,
       }),
+      signal: controller.signal,
     })
+
+    clearTimeout(timeoutId)
 
     if (!response.ok) {
       const err = await response.text()
@@ -125,6 +131,9 @@ Always respond with a JSON object matching this exact structure:
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
+    if (message.includes('aborted') || message.includes('timeout') || message === 'The user aborted a request.') {
+      return { statusCode: 504, body: JSON.stringify({ error: 'M3 request timed out', detail: 'OpenRouter took too long to respond. Please try again.' }) }
+    }
     return { statusCode: 500, body: JSON.stringify({ error: 'Failed to call M3', detail: message }) }
   }
 }

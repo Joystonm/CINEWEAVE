@@ -34,6 +34,9 @@ Be concise and practical. Respond in JSON format:
 }`
 
   try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 25000)
+
     const response = await fetch(`${OR_BASE}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -52,7 +55,10 @@ Be concise and practical. Respond in JSON format:
         temperature: 0.5,
         max_tokens: 1500,
       }),
+      signal: controller.signal,
     })
+
+    clearTimeout(timeoutId)
 
     if (!response.ok) {
       const err = await response.text()
@@ -82,6 +88,9 @@ Be concise and practical. Respond in JSON format:
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
+    if (message.includes('aborted') || message.includes('timeout') || message === 'The user aborted a request.') {
+      return { statusCode: 504, body: JSON.stringify({ error: 'M2.7 request timed out', detail: 'OpenRouter took too long. Please try again.' }) }
+    }
     return { statusCode: 500, body: JSON.stringify({ error: 'Failed to call M2.7', detail: message }) }
   }
 }
